@@ -826,7 +826,7 @@ const data = {
             "date": "2023-12-04",
             "seller_id": "seller_5",
             "customer_id": "customer_1",
-            "items": [
+            "items": [ 
                 {
                     "sku": "SKU_027",
                     "discount": 7.68,
