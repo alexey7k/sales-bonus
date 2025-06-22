@@ -120,13 +120,10 @@ data.purchase_records.forEach(function(purchase) {
         if (!sellerStat.top_products[item.sku]) {
             sellerStat.top_products[item.sku] = {
                 sku: item.sku,
-                name: product.name,
-                quantity: 0,
-                revenue: 0
+                quantity: 0
             };
         }
         sellerStat.top_products[item.sku].quantity += item.quantity;
-        sellerStat.top_products[item.sku].revenue += revenue;
     });
 });
 
