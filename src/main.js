@@ -15,7 +15,7 @@ function calculateSimpleRevenue(purchase, _product) {
     
     // Рассчитываем выручку с учетом скидки
     const revenueSku = sale_price * quantity * (1 - (discount || 0) / 100);
-    return revenueSku;
+    return +revenueSku.toFixed(2);
 }
 
 /**
@@ -45,6 +45,7 @@ function calculateBonusByProfit(index, total, seller) {
     /// Возвращаем бонус, округленный до целого числа
     return seller.profit * bonusPercentage;
 }
+
 /**
  * Функция для анализа данных продаж
  * @param data
@@ -60,6 +61,19 @@ function analyzeSalesData(data, options) {
 
     if (typeof options.calculateRevenue !== 'function' || typeof options.calculateBonus !== 'function') {
         throw new Error('Опции должны содержать функции calculateRevenue и calculateBonus');
+    }
+
+    // Проверка на пустые массивы
+    if (!data.sellers || data.sellers.length === 0) {
+        throw new Error('Массив sellers не может быть пустым');
+    }
+    
+    if (!data.products || data.products.length === 0) {
+        throw new Error('Массив products не может быть пустым');
+    }
+    
+    if (!data.purchase_records || data.purchase_records.length === 0) {
+        throw new Error('Массив purchase_records не может быть пустым');
     }
 
     // Подготовка данных
@@ -87,46 +101,46 @@ function analyzeSalesData(data, options) {
     });
 
     // Обработка покупок
-data.purchase_records.forEach(function(purchase) {
-    const sellerId = purchase.seller_id;
-    const sellerStat = sellerStats[sellerId];
-    
-    if (!sellerStat) return;
-
-    sellerStat.sales_count += 1;
-
-    purchase.items.forEach(function(item) {
-        const product = productsMap[item.sku];
-        if (!product) return;
-
-        // Создаем объект для расчета выручки
-        const purchaseItem = {
-            discount: item.discount || 0,
-            sale_price: item.sale_price,
-            quantity: item.quantity
-        };
-
-        // Расчет выручки
-        const revenue = options.calculateRevenue(purchaseItem, product);
+    data.purchase_records.forEach(function(purchase) {
+        const sellerId = purchase.seller_id;
+        const sellerStat = sellerStats[sellerId];
         
-        // Расчет прибыли (выручка - себестоимость)
-        const cost = product.purchase_price * item.quantity;
-        const profit = revenue - cost;
+        if (!sellerStat) return;
 
-        // Обновление статистики
-        sellerStat.revenue += revenue;
-        sellerStat.profit += profit;
+        sellerStat.sales_count += 1;
 
-        // Обновление топовых товаров
-        if (!sellerStat.top_products[item.sku]) {
-            sellerStat.top_products[item.sku] = {
-                sku: item.sku,
-                quantity: 0
+        purchase.items.forEach(function(item) {
+            const product = productsMap[item.sku];
+            if (!product) return;
+
+            // Создаем объект для расчета выручки
+            const purchaseItem = {
+                discount: item.discount || 0,
+                sale_price: item.sale_price,
+                quantity: item.quantity
             };
-        }
-        sellerStat.top_products[item.sku].quantity += item.quantity;
+
+            // Расчет выручки
+            const revenue = options.calculateRevenue(purchaseItem, product);
+            
+            // Расчет прибыли (выручка - себестоимость)
+            const cost = product.purchase_price * item.quantity;
+            const profit = revenue - cost;
+
+            // Обновление статистики
+            sellerStat.revenue += revenue;
+            sellerStat.profit += profit;
+
+            // Обновление топовых товаров
+            if (!sellerStat.top_products[item.sku]) {
+                sellerStat.top_products[item.sku] = {
+                    sku: item.sku,
+                    quantity: 0
+                };
+            }
+            sellerStat.top_products[item.sku].quantity += item.quantity;
+        });
     });
-});
 
     // Сортировка продавцов по прибыли
     const sortedSellers = Object.values(sellerStats).sort((a, b) => b.profit - a.profit);
