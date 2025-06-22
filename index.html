@@ -17,7 +17,8 @@
 
         const report = analyzeSalesData(data, {
             calculateRevenue: calculateSimpleRevenue,
-            calculateBonus: calculateBonusByProfit
+            calculateBonus: calculateBonusByProfit,
+            calculateProfit: calculateSimpleProfit
         });
 
         if (console.table) console.table(report);
