@@ -1,49 +1,24 @@
 /**
- * Функция для расчета прибыли
- * @param purchase запись о покупке
- * @param _product карточка товара
- * @returns {number}
- */
-function calculateSimpleProfit(purchase, _product) {
-    // Находим товар в чеке по SKU
-    const purchasedItem = purchase.items.find(function(item) {
-        return item.sku === _product.sku;
-    });
-    
-    // Если товар не найден в чеке, возвращаем 0
-    if (!purchasedItem) return 0;
-
-    // Рассчитываем цену продажи с учетом скидки
-    if (!purchasedItem.sale_price || !_product.purchase_price) return 0;
-    if (isNaN(purchasedItem.discount)) purchasedItem.discount = 0;
-    const revenueSku = purchasedItem.sale_price * (1 - purchasedItem.discount / 100);
-    
-    // Рассчитываем прибыль
-    return (revenueSku - _product.purchase_price) * purchasedItem.quantity;
-
-}
-
-
-/**
  * Функция для расчета выручки
  * @param purchase запись о покупке
- * @param _product карточка товара
+ * @param product карточка товара
  * @returns {number}
  */
-function calculateSimpleRevenue(purchase, _product) {
+function calculateSimpleRevenue(purchase, product) {
     // Находим товар в чеке по SKU
-    const purchasedItem = purchase.items.find(function(item) {
-        return item.sku === _product.sku;
-    });
+    const purchasedItem = purchase.items.find(item => item.sku === product.sku);
     
     // Если товар не найден в чеке, возвращаем 0
     if (!purchasedItem) return 0;
     
-    // Рассчитываем выручку
-    if (!purchasedItem.sale_price) return 0;
-    if (isNaN(purchasedItem.discount)) purchasedItem.discount = 0;
-    return (purchasedItem.sale_price * (1 - purchasedItem.discount / 100) * purchasedItem.quantity);
-
+    // Деструктуризация параметров из purchasedItem
+    const { discount = 0, sale_price, quantity } = purchasedItem;
+    
+    // Если нет цены продажи, возвращаем 0
+    if (!sale_price) return 0;
+    
+    // Рассчитываем выручку с учетом скидки
+    return sale_price * quantity * (1 - discount / 100);
 }
 
 /**
@@ -82,13 +57,13 @@ function calculateBonusByProfit(index, total, seller) {
  */
 function analyzeSalesData(data, options) {
     // @TODO: Проверка входных данных
-    const { calculateProfit, calculateRevenue, calculateBonus } = options;
+    const { calculateRevenue, calculateBonus } = options;
     if (!data || !options) {
         throw new Error('Некорректные входные данные');
     }
 
     // @TODO: Проверка наличия опций
-    if (typeof options.calculateProfit !== 'function' || typeof options.calculateRevenue !== 'function' || typeof options.calculateBonus !== 'function' ) {
+    if (typeof options.calculateRevenue !== 'function' || typeof options.calculateBonus !== 'function' ) {
         throw new Error('Опции должны содержать функции calculateRevenue и calculateBonus');
     }
 
@@ -132,7 +107,7 @@ function analyzeSalesData(data, options) {
 
             // Рассчитываем выручку и прибыль для текущего товара
             const revenue = options.calculateRevenue(purchase, product);
-            const profit = options.calculateProfit(purchase, product);
+            const profit = revenue - purchase_price;
 
 
             // Обновляем статистику продавца
