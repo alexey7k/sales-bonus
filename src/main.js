@@ -15,7 +15,7 @@ function calculateSimpleRevenue(purchase, _product) {
     
     // Рассчитываем выручку с учетом скидки
     const revenueSku = sale_price * quantity * (1 - (discount || 0) / 100);
-    return +revenueSku.toFixed(2);
+    return revenueSku;
 }
 
 /**
