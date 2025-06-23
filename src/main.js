@@ -128,7 +128,7 @@ function analyzeSalesData(data, options) {
             const profit = revenue - cost;
 
             // Обновление статистики
-            sellerStat.revenue += revenue;
+            sellerStat.revenue += +revenue.toFixed(2);
             sellerStat.profit += profit;
 
             // Обновление топовых товаров
